@@ -1,11 +1,17 @@
 """
-Unit tests for utils.py module.
+Unit tests for the whisper_captions.utils module.
 """
 import pytest
 import os
 import tempfile
 from io import StringIO
-from utils import str2bool, format_timestamp, write_srt, filename
+from whisper_captions.utils import (
+    str2bool,
+    format_timestamp,
+    write_srt,
+    filename,
+    expand_video_paths,
+)
 
 
 class TestStr2Bool:
@@ -161,3 +167,47 @@ class TestFilename:
         result = filename("C:\\Users\\Documents\\video.mp4")
         # Result depends on OS, but should work correctly
         assert "video" in result
+
+
+class TestExpandVideoPaths:
+    """Test cases for expand_video_paths function."""
+
+    def test_expand_file_passthrough(self, tmp_path):
+        """Test that plain file paths are returned as-is."""
+        video = tmp_path / "clip.mp4"
+        video.write_bytes(b"")
+        assert expand_video_paths([str(video)]) == [str(video)]
+
+    def test_expand_directory(self, tmp_path):
+        """Test that a directory expands to the video files it contains."""
+        for name in ["b.mp4", "a.mkv", "notes.txt"]:
+            (tmp_path / name).write_bytes(b"")
+        result = expand_video_paths([str(tmp_path)])
+        assert result == [str(tmp_path / "a.mkv"), str(tmp_path / "b.mp4")]
+
+    def test_expand_mixed_files_and_directories(self, tmp_path):
+        """Test mixing file and directory arguments."""
+        video = tmp_path / "single.mov"
+        video.write_bytes(b"")
+        folder = tmp_path / "batch"
+        folder.mkdir()
+        (folder / "clip.mp4").write_bytes(b"")
+        result = expand_video_paths([str(video), str(folder)])
+        assert result == [str(video), str(folder / "clip.mp4")]
+
+    def test_expand_uppercase_extension(self, tmp_path):
+        """Test that extensions are matched case-insensitively."""
+        video = tmp_path / "CLIP.MP4"
+        video.write_bytes(b"")
+        assert expand_video_paths([str(tmp_path)]) == [str(video)]
+
+    def test_expand_empty_directory_raises(self, tmp_path):
+        """Test that a directory with no videos raises FileNotFoundError."""
+        (tmp_path / "notes.txt").write_bytes(b"")
+        with pytest.raises(FileNotFoundError):
+            expand_video_paths([str(tmp_path)])
+
+    def test_expand_missing_path_raises(self, tmp_path):
+        """Test that a nonexistent path raises FileNotFoundError."""
+        with pytest.raises(FileNotFoundError):
+            expand_video_paths([str(tmp_path / "missing.mp4")])

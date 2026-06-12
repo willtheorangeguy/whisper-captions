@@ -1,6 +1,8 @@
 import os
 from typing import Iterator, TextIO
 
+VIDEO_EXTENSIONS = {".mp4", ".mkv", ".webm", ".avi", ".mov"}
+
 
 def str2bool(string):
     string = string.lower()
@@ -44,3 +46,24 @@ def write_srt(transcript: Iterator[dict], file: TextIO):
 
 def filename(path):
     return os.path.splitext(os.path.basename(path))[0]
+
+
+def expand_video_paths(paths):
+    """Expand any directories in paths to the video files they contain."""
+    expanded = []
+    for path in paths:
+        if os.path.isdir(path):
+            videos = sorted(
+                os.path.join(path, name)
+                for name in os.listdir(path)
+                if os.path.isfile(os.path.join(path, name))
+                and os.path.splitext(name)[1].lower() in VIDEO_EXTENSIONS
+            )
+            if not videos:
+                raise FileNotFoundError(f"no video files found in directory: {path}")
+            expanded.extend(videos)
+        elif os.path.isfile(path):
+            expanded.append(path)
+        else:
+            raise FileNotFoundError(f"no such file or directory: {path}")
+    return expanded

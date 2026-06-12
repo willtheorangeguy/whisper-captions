@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "whisper-captions"
+version = "1.0.0"
+description = "Automatically generate and embed subtitles into your videos using OpenAI's Whisper"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [
+    { name = "willtheorangeguy" },
+]
+keywords = ["whisper", "subtitles", "captions", "srt", "ffmpeg", "transcription", "speech-to-text"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Topic :: Multimedia :: Video",
+]
+dependencies = [
+    "openai-whisper",
+    "ffmpeg-python",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+]
+
+[project.scripts]
+whisper-captions = "whisper_captions.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/willtheorangeguy/whisper-captions"
+Repository = "https://github.com/willtheorangeguy/whisper-captions"
+Issues = "https://github.com/willtheorangeguy/whisper-captions/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --tb=short"
