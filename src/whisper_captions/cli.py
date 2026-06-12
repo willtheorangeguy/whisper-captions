@@ -4,13 +4,13 @@ import whisper
 import argparse
 import warnings
 import tempfile
-from utils import filename, str2bool, write_srt
+from .utils import expand_video_paths, filename, str2bool, write_srt
 
 def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("video", nargs="+", type=str,
-                        help="paths to video files to transcribe")
+                        help="paths to video files or directories of videos to transcribe")
     parser.add_argument("--model", default="turbo",
                         choices=whisper.available_models(), help="name of the Whisper model to use")
     parser.add_argument("--output_dir", "-o", type=str,
@@ -44,8 +44,13 @@ def main():
     elif language != "auto":
         args["language"] = language
         
+    try:
+        video_paths = expand_video_paths(args.pop("video"))
+    except FileNotFoundError as e:
+        parser.error(str(e))
+
     model = whisper.load_model(model_name)
-    audios = get_audio(args.pop("video"))
+    audios = get_audio(video_paths)
     subtitles = get_subtitles(
         audios, output_srt or srt_only, output_dir, lambda audio_path: model.transcribe(audio_path, **args)
     )
@@ -63,7 +68,7 @@ def main():
         audio = video.audio
 
         ffmpeg.concat(
-            video.filter('subtitles', os.path.basename(srt_path), force_style="OutlineColour=&H40000000,BorderStyle=3"), audio, v=1, a=1
+            video.filter('subtitles', os.path.abspath(srt_path), force_style="OutlineColour=&H40000000,BorderStyle=3"), audio, v=1, a=1
         ).output(out_path).run(quiet=True, overwrite_output=True)
 
         print(f"Saved subtitled video to {os.path.abspath(out_path)}.")
