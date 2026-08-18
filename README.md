@@ -1,32 +1,37 @@
-# whisper-captions
+<!-- Logo -->
+<h1 align="center">whisper-captions</h1>
 
-Automatically generate subtitles for any video — and optionally burn them in — using [OpenAI's Whisper](https://openai.com/blog/whisper) and `ffmpeg`.
+<!-- Copy -->
+<h4 align="center">Generate subtitles for any video — locally, with no API key and nothing uploaded.</h4>
 
-[![Run Tests](https://github.com/willtheorangeguy/whisper-captions/actions/workflows/test.yml/badge.svg)](https://github.com/willtheorangeguy/whisper-captions/actions/workflows/test.yml)
-[![PyPI](https://img.shields.io/pypi/v/whisper-captions)](https://pypi.org/project/whisper-captions/)
-[![Python versions](https://img.shields.io/pypi/pyversions/whisper-captions)](https://pypi.org/project/whisper-captions/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+<!-- Badges -->
+<div align="center">
+  <img alt="Run Tests" src="https://github.com/willtheorangeguy/whisper-captions/actions/workflows/test.yml/badge.svg">
+  <img alt="PyPI" src="https://img.shields.io/pypi/v/whisper-captions">
+  <img alt="Python versions" src="https://img.shields.io/pypi/pyversions/whisper-captions">
+  <img alt="GitHub Issues" src="https://img.shields.io/github/issues/willtheorangeguy/whisper-captions">
+  <img alt="License" src="https://img.shields.io/github/license/willtheorangeguy/whisper-captions">
+</div>
 
-## What it does
+<!-- Navigation -->
+<p align="center">
+  <a href="#key-features">Key Features</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#documentation">Documentation</a> •
+  <a href="#support">Support</a> •
+  <a href="#contributing">Contributing</a> •
+  <a href="#credits">Credits</a> •
+  <a href="#license">License</a>
+</p>
 
-`whisper-captions` takes one or more video files (or whole directories of them), extracts the audio, transcribes it locally with Whisper, and writes an `.srt` subtitle file for each video. It can also produce a new video with the subtitles burned in. Everything runs on your machine — no API keys, no uploads.
+## Key Features
 
-## Prerequisites
-
-- **Python 3.9+**
-- **[ffmpeg](https://ffmpeg.org/)** available on your `PATH`:
-
-  ```bash
-  # Windows (winget or chocolatey)
-  winget install ffmpeg
-  choco install ffmpeg
-
-  # macOS (homebrew)
-  brew install ffmpeg
-
-  # Ubuntu / Debian
-  sudo apt update && sudo apt install ffmpeg
-  ```
+- Transcribes with [OpenAI's Whisper](https://openai.com/blog/whisper) **on your machine** — no API key, no account, nothing leaves the computer.
+- Writes a standard `.srt` per video, or burns the subtitles into a new file.
+- Takes several videos, or a directory of them, in one run.
+- Translates foreign-language audio into English subtitles.
+- Any Whisper model, from `tiny` to `turbo`, so you can trade accuracy against time.
 
 ## Installation
 
@@ -34,81 +39,36 @@ Automatically generate subtitles for any video — and optionally burn them in �
 pip install whisper-captions
 ```
 
-Or install the latest development version straight from GitHub:
-
-```bash
-pip install git+https://github.com/willtheorangeguy/whisper-captions.git
-```
+Needs Python 3.9+ and [ffmpeg](https://ffmpeg.org/) on your `PATH`. See [`docs/installation.md`](docs/installation.md).
 
 ## Usage
 
-Generate an `.srt` subtitle file for a video (the default behavior):
-
 ```bash
-whisper-captions video.mp4
+whisper-captions video.mp4                          # video.srt
+whisper-captions ./videos -o ./subtitles            # a whole folder
+whisper-captions video.mp4 --task translate         # English subtitles
+whisper-captions video.mp4 --srt_only false -o out  # burn them in
 ```
 
-Process several videos, or an entire folder of them, in one go:
+> **Use a separate `-o` directory when burning subtitles in.** The burned output is named after the input, so writing to the input's own directory overwrites the source video. See [`docs/internal/known-issues.md`](docs/internal/known-issues.md).
 
-```bash
-whisper-captions episode1.mp4 episode2.mp4
-whisper-captions ./videos -o ./subtitles
-```
+## Documentation
 
-Burn the subtitles directly into a new video file:
+Full documentation lives in [`docs/`](docs/README.md):
+[Quickstart](docs/quickstart.md) · [Installation](docs/installation.md) · [Configuration](docs/configuration.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Development](docs/development.md) · [FAQ](docs/faq.md) · [Troubleshooting](docs/troubleshooting.md) · [Roadmap](docs/roadmap.md)
 
-```bash
-whisper-captions video.mp4 --srt_only false -o ./output
-```
+## Support
 
-Translate foreign-language audio into English subtitles:
+Open a [GitHub Discussion](https://github.com/willtheorangeguy/whisper-captions/discussions/new) or file an [issue](https://github.com/willtheorangeguy/whisper-captions/issues/new/choose).
 
-```bash
-whisper-captions video.mp4 --task translate
-```
+## Contributing
 
-### Options
+Contributions welcome. See the org-wide [Contributing Guide](https://github.com/willtheorangeguy/.github/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/willtheorangeguy/.github/blob/main/CODE_OF_CONDUCT.md).
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `video` | _(required)_ | One or more video files, or directories containing videos (`.mp4`, `.mkv`, `.webm`, `.avi`, `.mov`). |
-| `--model` | `turbo` | Whisper model to use. Smaller models are faster; larger models are more accurate. See the [model table](https://github.com/openai/whisper#available-models-and-languages). |
-| `--output_dir`, `-o` | `.` | Directory to save the outputs. |
-| `--srt_only` | `true` | Only generate the `.srt` file; skip creating a subtitled video. Set to `false` to burn subtitles into the video. |
-| `--output_srt` | `false` | When creating subtitled videos, also keep the `.srt` files. |
-| `--task` | `transcribe` | `transcribe` keeps the original language; `translate` produces English subtitles. |
-| `--language` | `auto` | Source language of the audio (e.g. `en`, `fr`, `ja`). Detected automatically by default. |
-| `--verbose` | `false` | Print progress and debug messages. |
+## Credits
 
-> **Note:** The first run downloads the selected Whisper model (~1.5 GB for `turbo`). Subsequent runs use the cached copy. If you don't have a GPU, try a smaller model such as `small` or `base` for faster transcription.
-
-## Using it as a library
-
-The transcription utilities can be imported directly:
-
-```python
-from whisper_captions.utils import write_srt, expand_video_paths
-
-import whisper
-
-model = whisper.load_model("turbo")
-result = model.transcribe("audio.wav")
-
-with open("output.srt", "w", encoding="utf-8") as srt:
-    write_srt(result["segments"], file=srt)
-```
-
-## Development
-
-```bash
-git clone https://github.com/willtheorangeguy/whisper-captions.git
-cd whisper-captions
-pip install -e ".[dev]"
-pytest
-```
-
-Releases are published to PyPI automatically by the [publish workflow](.github/workflows/publish.yml) when a GitHub release is created.
+Transcription by [OpenAI Whisper](https://github.com/openai/whisper); audio and video handled by [ffmpeg](https://ffmpeg.org/) through [ffmpeg-python](https://github.com/kkroening/ffmpeg-python).
 
 ## License
 
-This project is open-source and licensed under the MIT License — see [LICENSE](LICENSE) for details.
+MIT — see [`LICENSE.md`](LICENSE.md).
