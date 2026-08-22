@@ -7,12 +7,11 @@ licensing decision rather than a documentation one.
 Ordered by severity. See [`docs/roadmap.md`](../roadmap.md) for the narrative version,
 which also covers deliberate non-goals.
 
-
 **5 open:** 1 high, 3 medium, 1 low.
 
 ## 1. Burning subtitles in with the default output directory overwrites the source video
 
-**Severity:** High  
+**Severity:** High
 **Where:** `src/whisper_captions/cli.py` -> `main`, `out_path`
 
 **What:** `out_path = os.path.join(output_dir, f"{filename(path)}.mp4")` and `--output_dir` defaults to `"."`. For the natural invocation `whisper-captions video.mp4 --srt_only false` run in the directory holding `video.mp4`, `out_path` **is** the input path. The ffmpeg call uses `overwrite_output=True`, and nothing compares the output path to the input.
@@ -23,7 +22,7 @@ which also covers deliberate non-goals.
 
 ## 2. --output_srt is accepted, documented, and ignored
 
-**Severity:** Medium  
+**Severity:** Medium
 **Where:** `src/whisper_captions/cli.py` -> `get_subtitles`
 
 **What:** `get_subtitles(audio_paths, output_srt, output_dir, transcribe)` declares `output_srt` and never references it. The body always writes `srt_path = os.path.join(output_dir, f"{filename(path)}.srt")`. `main` passes `output_srt or srt_only`, so the argument is computed and discarded.
@@ -34,7 +33,7 @@ which also covers deliberate non-goals.
 
 ## 3. Extracted WAV files accumulate in the temp directory and are never deleted
 
-**Severity:** Medium  
+**Severity:** Medium
 **Where:** `src/whisper_captions/cli.py` -> `get_audio`
 
 **What:** Each video is decoded to `{tempdir}/{basename}.wav` at 16 kHz mono `pcm_s16le`. The paths are returned and used, and nothing removes them -- no `try/finally`, no `TemporaryDirectory`, no cleanup at exit.
@@ -45,7 +44,7 @@ which also covers deliberate non-goals.
 
 ## 4. Outputs are keyed by basename, so same-named videos in different folders collide
 
-**Severity:** Medium  
+**Severity:** Medium
 **Where:** `src/whisper_captions/cli.py` -> `get_audio`, `get_subtitles`; `src/whisper_captions/utils.py` -> `filename`
 
 **What:** `filename(path)` returns the basename without extension, and it names the temporary WAV, the `.srt`, and the burned `.mp4`. Passing `a/ep1.mp4 b/ep1.mp4` in one run gives both the same temporary audio path and the same output paths.
@@ -56,7 +55,7 @@ which also covers deliberate non-goals.
 
 ## 5. The pipeline in cli.py has no tests, and it is where every defect is
 
-**Severity:** Low  
+**Severity:** Low
 **Where:** `src/whisper_captions/cli.py`, `tests/test_utils.py`
 
 **What:** `tests/test_utils.py` covers `str2bool`, `format_timestamp`, `write_srt`, `filename`, and `expand_video_paths` -- all of `utils.py`. `cli.py` has no test file. `test.yml` runs the suite and passes.
@@ -64,7 +63,6 @@ which also covers deliberate non-goals.
 **Why it matters:** Every issue above lives in `cli.py`: the output path collision, the ignored flag, the uncleaned temporary files, the basename keying. Each is a decision about paths and flags -- the kind of thing a test can check without ffmpeg, Whisper, or a video, if the decisions were extracted from the orchestration. The current split puts the untestable work and the testable decisions in the same functions, so the suite passes while the tool overwrites your input.
 
 **Suggested fix:** Move the path decisions into `utils.py` as pure functions -- `output_path_for(input, output_dir)`, `audio_path_for(input)` -- and test them there. The ffmpeg and Whisper calls stay untested, which is fine; they are not where the bugs are.
-
 
 ---
 

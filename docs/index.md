@@ -3,7 +3,7 @@
 A CLI that extracts audio from video, transcribes it locally with Whisper, and writes `.srt`
 subtitles — optionally burning them into a new video.
 
-```
+```text
 whisper-captions/
 ├── src/whisper_captions/
 │   ├── cli.py      argument parsing, the pipeline, ffmpeg calls

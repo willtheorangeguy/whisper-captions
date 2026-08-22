@@ -2,7 +2,7 @@
 
 Two modules. `cli.py` runs the pipeline; `utils.py` holds the pure functions.
 
-```
+```text
 video files / directories
    └── expand_video_paths()        one level deep, by extension
           └── get_audio()          ffmpeg → 16 kHz mono WAV in the temp dir
@@ -22,7 +22,7 @@ turns into a clean `parser.error` rather than a traceback.
 
 One ffmpeg call per video:
 
-```
+```text
 acodec=pcm_s16le, ac=1, ar=16k
 ```
 

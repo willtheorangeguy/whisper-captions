@@ -13,7 +13,7 @@ Needs ffmpeg on the `PATH` to run the tool, though not to run the tests.
 
 ## Layout
 
-```
+```text
 src/whisper_captions/
 ├── __init__.py    version
 ├── cli.py         argument parsing and the pipeline
