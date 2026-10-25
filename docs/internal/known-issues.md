@@ -9,7 +9,9 @@ which also covers deliberate non-goals.
 
 **5 open:** 1 high, 3 medium, 1 low.
 
-## 1. Burning subtitles in with the default output directory overwrites the source video
+## 1. Burning subtitles in with the default output directory overwrites the source video — RESOLVED
+
+**Resolution:** Burned videos use a .subtitled.mp4 suffix, existing destinations are rejected before model loading, and FFmpeg receives -n to prevent replacement during races.
 
 **Severity:** High
 **Where:** `src/whisper_captions/cli.py` -> `main`, `out_path`
