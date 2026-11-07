@@ -49,6 +49,13 @@ def main():
     except FileNotFoundError as e:
         parser.error(str(e))
 
+    if not srt_only:
+        sources = {os.path.realpath(path) for path in video_paths}
+        for path in video_paths:
+            destination = os.path.join(output_dir, f"{filename(path)}.subtitled.mp4")
+            if os.path.realpath(destination) in sources or os.path.lexists(destination):
+                parser.error(f"Refusing to overwrite an existing video: {destination}")
+
     model = whisper.load_model(model_name)
     audios = get_audio(video_paths)
     subtitles = get_subtitles(
@@ -60,7 +67,7 @@ def main():
         return
 
     for path, srt_path in subtitles.items():
-        out_path = os.path.join(output_dir, f"{filename(path)}.mp4")
+        out_path = os.path.join(output_dir, f"{filename(path)}.subtitled.mp4")
 
         print(f"Adding subtitles to {filename(path)}...")
 
@@ -69,7 +76,7 @@ def main():
 
         ffmpeg.concat(
             video.filter('subtitles', os.path.abspath(srt_path), force_style="OutlineColour=&H40000000,BorderStyle=3"), audio, v=1, a=1
-        ).output(out_path).run(quiet=True, overwrite_output=True)
+        ).output(out_path).global_args("-n").run(quiet=True)
 
         print(f"Saved subtitled video to {os.path.abspath(out_path)}.")
 
